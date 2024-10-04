@@ -1,0 +1,3 @@
+D:/STM32/proj/DS_2024_E/cmake-build-debug/CMakeFiles/DS_2024_E.elf.dir
+D:/STM32/proj/DS_2024_E/cmake-build-debug/CMakeFiles/edit_cache.dir
+D:/STM32/proj/DS_2024_E/cmake-build-debug/CMakeFiles/rebuild_cache.dir

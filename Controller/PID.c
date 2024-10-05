@@ -20,9 +20,9 @@ void PID_Init(PID *pid_speed,PID *pid_position)//PID参数初始化
     pid_speed->maxOutput=16000;
     pid_speed->lastErr = 0;
     pid_speed->output = 0;
-    pid_speed->kp = 66.72;
-    pid_speed->ki = 1.12;
-    pid_speed->kd = 0;
+    pid_speed->kp = 76.72;
+    pid_speed->ki = 0.0;
+    pid_speed->kd = 10;
     pid_speed->deadZone = 0.05;
 
     pid_position->err = 0;
@@ -31,10 +31,10 @@ void PID_Init(PID *pid_speed,PID *pid_position)//PID参数初始化
     pid_position->maxOutput = 600;
     pid_position->lastErr = 0;
     pid_position->output = 0;
-    pid_position->kp = 32.763;
+    pid_position->kp = 50.763;
     pid_position->ki = 0;
-    pid_position->kd = 0;
-    pid_position->deadZone = 0.0005;
+    pid_position->kd = 5;
+    pid_position->deadZone = 0.001;
 
 }
 

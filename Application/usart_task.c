@@ -18,7 +18,8 @@ void usart_tx_task(void *arg) {
 //        Magnetic_off();
 //        vTaskDelay(1000);
 //        Magnetic_on();
-        vTaskDelay(100);
+        printf("UART: %d,%d,%.5f,%.5f\r\n",Start_angle_1,gm2006_1.rotor_angle,theta,angle_total_1);
+        vTaskDelay(50);
     }
 }
 void usart_rx_task(void *arg) {

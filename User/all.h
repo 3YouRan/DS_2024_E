@@ -87,7 +87,8 @@ extern int16_t x;//机械臂端子x坐标
 extern int16_t y;//机械臂端子y坐标
 extern float theta;//电机1的目标theta角度
 extern float theta_last;
-
+extern int16_t theta_2_last;
+extern int16_t theta_2_last_last;
 
 extern void my_Init();//初始化函数
 extern float Kinematics_Solution(int16_t x, int16_t y);//运动学解算函数

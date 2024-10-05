@@ -12,6 +12,9 @@
  */
 uint32_t CAN_Get_times=0;
 int16_t Start_angle_1=0;
+int16_t theta_2_last=0;
+int16_t theta_2_last_last=0;
+int16_t theta_2=0;
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan){
 
     CAN_RxHeaderTypeDef rx_header;
@@ -25,7 +28,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan){
         {
             case 0x201:
             {
-                if(CAN_Get_times<100){//由于电机转子的初始机械角度不一定为0，因此芯片刚上电时，获取到的电机实际角度可能不为0,在位置环的作用下可能导致电机上电时偏离初始位置
+                if(CAN_Get_times<50){//由于电机转子的初始机械角度不一定为0，因此芯片刚上电时，获取到的电机实际角度可能不为0,在位置环的作用下可能导致电机上电时偏离初始位置
                     Start_angle_1    = ((rx_data[0] << 8) | rx_data[1]);//因此记录电机转子的初始机械角度，补偿给位置环，避免电机的初始漂移。
                     Start_angle_1= transfer(Start_angle_1, 0, 8191, -pi / 36.0, pi / 36.0);
                 }
@@ -33,6 +36,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan){
                 gm2006_1.rotor_speed    = ((rx_data[2] << 8) | rx_data[3]);
                 gm2006_1.torque_current = ((rx_data[4] << 8) | rx_data[5]);
 //                gm2006_1.temp           =   rx_data[6];
+//                printf("CAN_get_id:%x\r\n",rx_header.StdId);
 
 
                 break;
@@ -56,13 +60,16 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan){
         switch(rx_header.StdId)
         {
             case 0x405:{
-                int16_t theta_2=((int16_t)((rx_data[0]<<8)|(rx_data[1])));
-                theta=theta_2/1000.0;
-//                  theta=1.57;
-//                  x=rx_data[0]<<8|rx_data[1];
-//                  y=(int16_t)(rx_data[2]<<8|rx_data[3]);
+                theta_2_last_last=theta_2_last;
+                theta_2_last=theta_2;
+                theta_2=((int16_t)((rx_data[0]<<8)|(rx_data[1])));
+                if(theta_2_last!=theta_2&&theta_2_last_last==theta_2_last) {
+                    theta = theta_2 / 1000.0;
+                    xSemaphoreGiveFromISR(g_SemaphoreHandle_For_Kinematics, NULL);//使用信号量唤醒Kinematics任务
+                    printf("theta=%d,%X\n", theta, theta_2);
+                }
                 xSemaphoreGiveFromISR(g_SemaphoreHandle_For_Kinematics, NULL);//使用信号量唤醒Kinematics任务
-                printf("x,y,theta,ID=%f,%X\n",theta,rx_header.StdId);
+
                 break;
             }
         }
@@ -90,10 +97,10 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
                 printf("UART DataBuff[%d] = %c\r\n",i,DataBuff[i]);
 //            xEventGroupSetBitsFromISR(g_xEventGroup_Uart_Rx,(1<<0),NULL);
 
-//            USART_PID_Adjust(1);//鏁版嵁瑙ｆ瀽鍜屽弬鏁拌祴鍊煎嚱鏁?
-//
-//            memset(DataBuff,0,sizeof(DataBuff));  //娓呯┖缂撳瓨鏁扮粍
-//            RxLine=0;  //娓呯┖鎺ユ敹闀垮害
+            USART_PID_Adjust(1);//鏁版嵁瑙ｆ瀽鍜屽弬鏁拌祴鍊煎嚱鏁?
+
+            memset(DataBuff,0,sizeof(DataBuff));  //娓呯┖缂撳瓨鏁扮粍
+            RxLine=0;  //娓呯┖鎺ユ敹闀垮害
             xSemaphoreGiveFromISR(g_SemaphoreHandle_For_Uart_RX, NULL);//使用信号量唤醒UART_Rx任务
 
         }
@@ -112,7 +119,11 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
   * @retval 无
   */
 uint8_t time1=0;
-
+int16_t current_1=0;
+int16_t current_2=0;
+float angle_now_1=0,angle_last_1=0,angle_total_1=0;//电机位置统计
+float angle_now_2=0,angle_last_2=0,angle_total_2=0;
+bool Pos_flag=1;//是否开启位置控制
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
     /* USER CODE BEGIN Callback 0 */
@@ -150,17 +161,34 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         if(time1==10){
             time1=0;
 
-//            if((Target_Speed_1 - Target_Speed_actual_1) > MIN_Spe_Increment){
-//                Target_Speed_actual_1+=MIN_Spe_Increment;
-//            } else if((Target_Speed_1 - Target_Speed_actual_1) < -MIN_Spe_Increment){
-//                Target_Speed_actual_1-=MIN_Spe_Increment;
-//            }
-//            if((Target_Speed_2 - Target_Speed_actual_2) > MIN_Spe_Increment){
-//                Target_Speed_actual_2+=MIN_Spe_Increment;
-//            } else if((Target_Speed_2 - Target_Speed_actual_2) < -MIN_Spe_Increment){
-//                Target_Speed_actual_2-=MIN_Spe_Increment;
-//            }
-            xSemaphoreGiveFromISR(g_SemaphoreHandle_For_Pid, NULL);//使用信号量唤醒PID任务
+            if(Pos_flag) {//(theta)>0?(theta):(theta+0.1)
+                Target_Speed_1 = FW_PID_Realize(&pid_position,//位置环
+                                                (theta)>0?(theta):(theta+0.1),
+                                                angle_total_1);//将记录的电机转子初始机械角度补偿给位置环，避免电机的初始漂移。
+                Target_Speed_2 = FW_PID_Realize(&pid_position,
+                                                Target_Position_2,
+                                                angle_total_2);
+//            printf("Target_Speed_1:%f,%f\n",Target_Speed_1,theta);
+            }
+            //速度环
+            current_1=FW_PID_Realize(&pid_speed, Target_Speed_actual_1, gm2006_1.rotor_speed / 36.0);
+            current_2=FW_PID_Realize(&pid_speed, Target_Speed_actual_2, gm2006_2.rotor_speed / 36.0);
+//            printf("Target_Speed_1:%d,%.2f,%d,%d\n",current_1,angle_total_1,gm2006_1.rotor_angle,gm2006_2.rotor_angle);
+
+            //速度爬坡
+            if((Target_Speed_1 - Target_Speed_actual_1) > MIN_Spe_Increment){
+                Target_Speed_actual_1+=MIN_Spe_Increment;
+            } else if((Target_Speed_1 - Target_Speed_actual_1) < -MIN_Spe_Increment){
+                Target_Speed_actual_1-=MIN_Spe_Increment;
+            }
+            if((Target_Speed_2 - Target_Speed_actual_2) > MIN_Spe_Increment){
+                Target_Speed_actual_2+=MIN_Spe_Increment;
+            } else if((Target_Speed_2 - Target_Speed_actual_2) < -MIN_Spe_Increment){
+                Target_Speed_actual_2-=MIN_Spe_Increment;
+            }
+            //发送电机can控制信号
+            GM2006_Current_Set(&hcan1, current_1, current_2, 0, 0, 0x200, GM_ID(1) | GM_ID(2));
+//            xSemaphoreGiveFromISR(g_SemaphoreHandle_For_Pid, NULL);//使用信号量唤醒PID任务
         }
     }
     /* USER CODE END Callback 1 */

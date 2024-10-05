@@ -23,15 +23,15 @@ void Kinematics_Solution_task(void* arg) {
 
 //        printf("x,y=%d,%d,%.2f\n",x,y,theta);
         vTaskDelay(2000);//等待位置改变
-        printf("PID_controller: %.2f,%.2f,%.2f,%.5f,%.5f\r\n", pid_position.kp, pid_position.ki, pid_position.kd, angle_total_2,Target_Position_2);
+        printf("PID_controller: %.2f,%.2f,%.2f,%.5f,%.5f\r\n", pid_position.kp, pid_position.ki, pid_position.kd, angle_total_1,Target_Position_1);
 //        Magnetic_on();
         //如果机械臂上没有棋子
         if(get_flag==0){
             Target_Position_2=pi/4;//gm2006_2下降
-            vTaskDelay(1000);//等待位置改变
+            vTaskDelay(1500);//等待位置改变
             Magnetic_on();
             Target_Position_2=0;//gm2006_2上升
-            vTaskDelay(1000);//等待位置改变
+            vTaskDelay(1500);//等待位置改变
             get_flag=1;
             CAN_Transmit_DATA(&hcan2,0x406,NULL,0);
             goto end;

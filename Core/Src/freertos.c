@@ -108,7 +108,7 @@ void MX_FREERTOS_Init(void) {
   /* add threads, ... */
     xTaskCreate(usart_tx_task, "UART_TX_Task", 128, NULL, osPriorityNormal, &g_Uart_TX_TaskHandle);
     xTaskCreate(usart_rx_task, "UART_RX_Task", 128, NULL, osPriorityNormal+1,&g_Uart_RX_TaskHandle);
-    xTaskCreate(pid_task, "PID_Task", 128*8, NULL, osPriorityNormal+2,&g_Pid_TaskHandle);
+//    xTaskCreate(pid_task, "PID_Task", 128*8, NULL, osPriorityNormal+2,&g_Pid_TaskHandle);
     xTaskCreate(Kinematics_Solution_task, "Kinematics_Task", 128*2, NULL, osPriorityNormal+2,&g_Kinematics_TaskHandle);
   /* USER CODE END RTOS_THREADS */
 

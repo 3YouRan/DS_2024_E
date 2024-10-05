@@ -135,9 +135,10 @@ void USART_PID_Adjust(uint8_t Motor_n)
             pid_speed.kd = data_Get;
         else if((DataBuff[0]=='S' && DataBuff[1]=='p') && DataBuff[2]=='e') //目标速度
             Target_Speed_1 = data_Get;
-        else if((DataBuff[0]=='P' && DataBuff[1]=='o') && DataBuff[2]=='s') //目标位置
-            Target_Position_last_1=Target_Position_1;
+        else if((DataBuff[0]=='P' && DataBuff[1]=='o') && DataBuff[2]=='s') { //目标位置
+            Target_Position_last_1 = Target_Position_1;
             Target_Position_1 = data_Get;
+        }
     }
 //    else if(Motor_n == 0) // 右边电机
 //    {

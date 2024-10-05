@@ -9,7 +9,7 @@ extern void Magnetic_off(void);
 void usart_tx_task(void *arg) {
     while (1) {
 //        printf("PID_controller: %.2f,%.2f,%.2f,%d\r\n", pid_current.kp, pid_current.ki, pid_current.kd, gm3508_1.rotor_angle);
-//        printf("PID_controller: %.2f,%.2f,%.2f,%.5f,%.5f\r\n", pid_position.kp, pid_position.ki, pid_position.kd, angle_total_1,Target_Position_1);
+//        printf("PID_controller: %.2f,%.2f,%.2f,%f,%f\r\n", pid_position.kp, pid_position.ki, pid_position.kd, angle_total_1,Target_Position_1);
 //        GM2006_Current_Set(&hcan1,1000,0x405,1);
 //        CAN_Transmit_DATA(&hcan2,0x406,NULL,0);
 //        HAL_GPIO_TogglePin(Magnetic1_GPIO_Port, Magnetic1_Pin);
@@ -18,7 +18,7 @@ void usart_tx_task(void *arg) {
 //        Magnetic_off();
 //        vTaskDelay(1000);
 //        Magnetic_on();
-        vTaskDelay(1000);
+        vTaskDelay(100);
     }
 }
 void usart_rx_task(void *arg) {
